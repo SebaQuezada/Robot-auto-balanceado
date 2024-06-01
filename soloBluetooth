@@ -1,0 +1,129 @@
+#include <SoftwareSerial.h> // Libreria Bluetooth
+
+SoftwareSerial BT(8, 9);
+
+
+#define FORWARD 'F'
+#define BACKWARD 'B'
+#define LEFT 'L'
+#define RIGHT 'R'
+#define CIRCLE 'C'
+#define CROSS 'X'
+#define TRIANGLE 'T'
+#define SQUARE 'S'
+#define START 'A'
+#define PAUSE 'P'
+
+int motorL1 = 2;
+int motorL2 = 3;
+int motorR1 = 4;
+int motorR2 = 5;
+
+int velocidad = 100;
+const int velocidadMaxima = 255;
+const int velocidadMinima = 0;
+const int incrementoVelocidad = 10;
+const int decrementoVelocidad = 10; // Velocidad de decremento para frenado gradual
+
+void setup() {
+ 
+  BT.begin(9600); // Set the baud rate for serial communication
+  inicioMotors();
+}
+
+void loop() {
+ 
+  if (BT.available() > 0) {
+    char command = BT.read();
+    executeCommand(command);
+
+  }
+}
+
+void executeCommand(char command) {
+  switch (command) {
+   
+    case FORWARD:
+      digitalWrite(motorL1, velocidad);
+      digitalWrite(motorL2, LOW);
+      digitalWrite(motorR1, velocidad);
+      digitalWrite(motorR2, LOW);
+      break;
+   
+    case BACKWARD:
+      digitalWrite(motorL1, LOW);
+      digitalWrite(motorL2, velocidad);
+      digitalWrite(motorR1, LOW);
+      digitalWrite(motorR2, velocidad);
+      break;
+   
+    case LEFT:
+      digitalWrite(motorL1, LOW);
+      digitalWrite(motorL2, velocidad);
+      digitalWrite(motorR1, velocidad);
+      digitalWrite(motorR2, LOW);
+      break;
+   
+    case RIGHT:
+      digitalWrite(motorL1, velocidad);
+      digitalWrite(motorL2, LOW);
+      digitalWrite(motorR1, LOW);
+      digitalWrite(motorR2, velocidad);
+      break;
+     
+    case CIRCLE:
+      break;
+   
+    case CROSS:
+      // Decrease speed
+      velocidad = max(velocidad - incrementoVelocidad, velocidadMinima);
+      break;
+   
+    case TRIANGLE:
+      // Increase speed
+      velocidad = min(velocidad + incrementoVelocidad, velocidadMaxima);
+      break;
+   
+    case SQUARE:
+      break;
+     
+    case START:
+      break;
+     
+    case PAUSE:
+      stopMotors();
+      break;
+     
+    default:
+      stopMotors();
+      break;
+  }
+}
+
+void stopMotors() {
+  digitalWrite(motorL1, LOW);
+  digitalWrite(motorL2, LOW);
+  digitalWrite(motorR1, LOW);
+  digitalWrite(motorR2, LOW);
+}
+
+void stopMotorsGradually() {
+  while (velocidad > 0) {
+    velocidad = max(velocidad - decrementoVelocidad, 0);
+    digitalWrite(motorL1, velocidad);
+    digitalWrite(motorL2, velocidad);
+    digitalWrite(motorR1, velocidad);
+    digitalWrite(motorR2, velocidad);
+    delay(100); // Ajusta el delay para controlar la rapidez de la desaceleración
+  }
+  velocidad = 100;
+ 
+}
+
+void inicioMotors(){
+   pinMode(motorL1, OUTPUT);
+   pinMode(motorL2, OUTPUT);
+   pinMode(motorR1, OUTPUT);
+   pinMode(motorR2, OUTPUT);
+ 
+  }
